@@ -50,9 +50,79 @@ The easier way to do this is to a graphical utility included with the Ubuntu Liv
 
 ##### Boot partition
 
-Click the "Free space" and the + button to add a partition. Set the partition size to 1 GB (that should be more than enough).
+Click the "Free space" and the + button to add a partition. Set the partition size to 1800 MB (that should be more than enough).
 
 Click Next and make sure the Type is Ext4.
 
 Click Create.
 
+##### LUKS partition
+
+Again, click the remaining "Free space" and the + button to add a partition. Set the partition size to the remaining free space on your disk (the default value).
+
+Click "Next" and make sure the Type is also Ext4, but this time also check the "Password protect volume (LUKS)" underneath it.
+
+Click "Next" and set a strong and memorable password for it. You will need to type it in at every boot, so make sure you won't forget it.
+
+Click "Create".
+
+What we achieve at this step, we created a LUKS partition encrypted with the password you set. Inside this special partition, there is an Ext4 partition that can be read only after the LUKS partition was unlocked using the password.
+
+To verify this operation, you can open a Terminal and type `ls /dev/mapper`. The output should be something like:
+
+```
+control  luks-7a09c...
+```
+
+Replace `luks-7a09c...` with what label was generated for your device. Use that value in the following instructions.
+
+##### Linux partitions within LUKS
+
+Normally, what we have so far should be OK, but I also want a swap partition within LUKS. If you don't expect your computer to need much swap, you can skip this step.
+
+Switching to the terminal again, we need to redo the LUKS volumes:
+
+```
+sudo su
+pvcreate /dev/mapper/luks-7a09c...
+```
+
+This will prompt to delete the existing one and will create a new physical volume.
+
+Next, we need to create a volume group with 2 volumes inside (one for swap and one for the root filesystem).
+
+```
+vgcreate ubuntu-vg /dev/mapper/luks-7a09c...
+lvcreate -L 20G -n swap_1 ubuntu-vg
+lvcreate -l 100%FREE -n root ubuntu-vg
+```
+
+### Ubuntu installation
+
+Now we need to install Ubuntu on the newly created partitions.
+
+Quit the terminal and Disks and start the "Install Ubuntu 23.04".
+
+Select language, keyboard etc.
+
+> Before getting to the disks part, the installer may hang for a few minutes. Be patient.
+
+Chooese "Something else"
+
+#### Selecting the partitions for Ubuntu
+
+Select the boot partition (the 1800MB partition, type Ext4 we created previously), click "Change", set "Use as" to Ext4 and the mount point to `/boot`. You should also choose to format the partition.
+
+Set the `/dev/mapper/ubuntu-vg-swap_1` as `swap area`.
+
+Set the `/dev/mapper/ubuntu-vg-root` (the one spanning the rest of your disk) to Ext4, select to format it and set the mount point to `/`.
+
+Below the table, set the Device for boot loader installation to you full device. It should be something like `/dev/sda` or `/dev/nvme0n1`.
+
+Click Install now.
+
+> Do not restart your computer after install!
+
+### Post installation
+
+After installation, choose to continue to use Ubuntu, don't restart.
