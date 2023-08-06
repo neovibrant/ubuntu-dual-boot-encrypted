@@ -159,7 +159,7 @@ Edit `/etc/crypttab` to add your luks partition
 #     tries=0 - allows to re-enter password unlimited number of times
 #     discard - allows SSD TRIM command, WARNING: potential security risk (more: "man crypttab")
 #     loud    - display all warnings
-luks-7a09c... UUID=luks-7a09c... none luks,discard
+luks-7a09c... UUID=7a09c... none luks,discard
 ```
 
 Apply changes with:
