@@ -2,7 +2,7 @@
 
 Steps to install Windows 10/11 and Ubuntu 23.04 while using disk encryption for both systems.
 
-This will erase all data on your disk.
+> Back up your data before running these steps.
 
 ## Windows
 
