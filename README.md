@@ -137,9 +137,11 @@ You will need the UUID generated for your LUKS partition. This is the `7a09c...`
 
 Next, get into a chroot in the newly installed system. The commands below mount our decrypted partitions into `/target`.
 
+Make sure to replace `/dev/nvme0n1p5` with whatever your `/boot` partition is (the one with 1800 MB).
+
 ```
 mount /dev/mapper/ubuntu--vg-root /target
-mount /dev/sda5 /target/boot
+mount /dev/nvme0n1p5 /target/boot
 for n in proc sys dev etc/resolv.conf; do mount --rbind /$n /target/$n; done 
 chroot /target
       
