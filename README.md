@@ -125,4 +125,45 @@ Click Install now.
 
 ### Post installation
 
-After installation, choose to continue to use Ubuntu, don't restart.
+After installation, choose to continue to use Ubuntu, don't restart. This part is essential because you need to tell Ubuntu how to boot from the encrypted partiotion and make it ask for the encryption password at startup.
+
+OPen the Terminal again and go into super user mode
+
+```
+sudo su
+```
+
+You will need the UUID generated for your LUKS partition. This is the `7a09c...` value. To verify it, type `blkid` and inspect the UUID value next to the LUKS partition.
+
+Next, get into a chroot in the newly installed system. The commands below mount our decrypted partitions into `/target`.
+
+```
+mount /dev/mapper/ubuntu--vg-root /target
+mount /dev/sda5 /target/boot
+for n in proc sys dev etc/resolv.conf; do mount --rbind /$n /target/$n; done 
+chroot /target
+      
+mount -a
+```
+
+Note that `chroot /target` basically takes you into a mode where `/target` becomes `/`. You are now operating inside the newly installed Ubuntu filesystem.
+
+Edit `/etc/crypttab` to add your luks partition
+
+```
+# <target name> <source device> <key file> <options>
+# options used:
+#     luks    - specifies that this is a LUKS encrypted device
+#     tries=0 - allows to re-enter password unlimited number of times
+#     discard - allows SSD TRIM command, WARNING: potential security risk (more: "man crypttab")
+#     loud    - display all warnings
+luks-7a09c... UUID=luks-7a09c... none luks,discard
+```
+
+Apply changes with:
+
+```
+update-initramfs -k all -c
+```
+
+Done. You can now restart your computer.
