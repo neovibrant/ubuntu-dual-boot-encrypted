@@ -18,7 +18,7 @@ To make room for Ubuntu, you need to resize the Windows partition leaving some U
 
 You can use the Windows Disk Management to shrink the Windows partition (C:) or `diskpart`.
 
-> If you already have BitLocker enabled on the Windows partition, make sure to backup your Recovery Key, it's very likely you will need it!
+> If you already have BitLocker enabled on the Windows partition, make sure to backup your Recovery Key, it's possible you will need it!
 
 If the Windows partition is not encrypted with BitLocker yet, you can do that after setting up Ubuntu.
 
@@ -46,7 +46,7 @@ We will create the partitions for Ubuntu:
 
 Since the disk already has an EFI partition created by Windows, we don't need to create another one.
 
-The easier way to do this is to a graphical utility included with the Ubuntu Live disk. It's called "Disks". To find it, just press the Super key (the Win key on your keyboard) and type Disks in the search box.
+The easier way to do this is to use a graphical utility included with the Ubuntu Live disk. It's called "Disks". To find it, just press the Super key (the Win key on your keyboard) and type Disks in the search box.
 
 ##### Boot partition
 
@@ -62,11 +62,11 @@ Again, click the remaining "Free space" and the + button to add a partition. Set
 
 Click "Next" and make sure the Type is also Ext4, but this time also check the "Password protect volume (LUKS)" underneath it.
 
-Click "Next" and set a strong and memorable password for it. You will need to type it in at every boot, so make sure you won't forget it.
+Click "Next" and set a strong and memorable password for it. You will need to type it at every boot, so make sure you won't forget it.
 
 Click "Create".
 
-What we achieve at this step, we created a LUKS partition encrypted with the password you set. Inside this special partition, there is an Ext4 partition that can be read only after the LUKS partition was unlocked using the password.
+What we achieved at this step, we created a LUKS partition encrypted with the password you set. Inside this special partition, there is an Ext4 partition that can be read only after the LUKS partition was unlocked using the password.
 
 To verify this operation, you can open a Terminal and type `ls /dev/mapper`. The output should be something like:
 
@@ -74,11 +74,11 @@ To verify this operation, you can open a Terminal and type `ls /dev/mapper`. The
 control  luks-7a09c...
 ```
 
-Replace `luks-7a09c...` with what label was generated for your device. Use that value in the following instructions.
+The `luks-7a09c...` should be replaced with what label was generated for your device. Use that value in the following instructions.
 
 ##### Linux partitions within LUKS
 
-Normally, what we have so far should be OK, but I also want a swap partition within LUKS. If you don't expect your computer to need much swap, you can skip this step.
+Normally, what we have so far should be OK, but we also want a swap partition within LUKS. If you don't expect your computer to need much swap, you can skip this step (Ubuntu will use a file for swap).
 
 Switching to the terminal again, we need to redo the LUKS volumes:
 
@@ -107,7 +107,7 @@ Select language, keyboard etc.
 
 > Before getting to the disks part, the installer may hang for a few minutes. Be patient.
 
-Chooese "Something else"
+Chooese "Something else" when prompted about where to install Ubuntu.
 
 #### Selecting the partitions for Ubuntu
 
@@ -117,7 +117,7 @@ Set the `/dev/mapper/ubuntu-vg-swap_1` as `swap area`.
 
 Set the `/dev/mapper/ubuntu-vg-root` (the one spanning the rest of your disk) to Ext4, select to format it and set the mount point to `/`.
 
-Below the table, set the Device for boot loader installation to you full device. It should be something like `/dev/sda` or `/dev/nvme0n1`.
+Below the table, set the Device for boot loader installation to your full device. It should be something like `/dev/sda` or `/dev/nvme0n1`.
 
 Click Install now.
 
@@ -127,15 +127,15 @@ Click Install now.
 
 After installation, choose to continue to use Ubuntu, don't restart. This part is essential because you need to tell Ubuntu how to boot from the encrypted partiotion and make it ask for the encryption password at startup.
 
-OPen the Terminal again and go into super user mode
+Open the Terminal again and go into super user mode
 
 ```
 sudo su
 ```
 
-You will need the UUID generated for your LUKS partition. This is the `7a09c...` value. To verify it, type `blkid` and inspect the UUID value next to the LUKS partition.
+You will need the UUID generated for your LUKS partition. This is the `7a09c...` value (without the `luks-` prefix). To verify it, type `blkid` and inspect the UUID value next to the LUKS partition.
 
-Next, get into a chroot in the newly installed system. The commands below mount our decrypted partitions into `/target`.
+Next, get into a chroot in the newly installed system. The commands below mount the decrypted partitions into `/target`.
 
 Make sure to replace `/dev/nvme0n1p5` with whatever your `/boot` partition is (the one with 1800 MB).
 
@@ -150,7 +150,7 @@ mount -a
 
 Note that `chroot /target` basically takes you into a mode where `/target` becomes `/`. You are now operating inside the newly installed Ubuntu filesystem.
 
-Edit `/etc/crypttab` to add your luks partition
+Edit `/etc/crypttab` to add your luks partition. If this file doesn't exists (it probably won't), then it's OK to create it.
 
 ```
 # <target name> <source device> <key file> <options>
@@ -161,6 +161,8 @@ Edit `/etc/crypttab` to add your luks partition
 #     loud    - display all warnings
 luks-7a09c... UUID=7a09c... none luks,discard
 ```
+
+Above, please notice the first value is `luks-<UUID>` and the second is `UUID=<UUID>` (without the `luks-` prefix)
 
 Apply changes with:
 
