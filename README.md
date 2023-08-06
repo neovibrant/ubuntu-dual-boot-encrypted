@@ -34,4 +34,25 @@ Follow the instructions to write the ISO to the USB stick: https://ubuntu.com/tu
 
 ### Installation
 
-Boot from USB
+Boot from USB and choose Try Ubuntu.
+
+#### Partitioning
+
+We will create the partitions for Ubuntu:
+
+- Boot partition (about 1 GB)
+- LUKS (encrypted) partition for Ubuntu (the rest of the unallocated disk space)
+  - This partition will contain several other partitions - all encrypted
+
+Since the disk already has an EFI partition created by Windows, we don't need to create another one.
+
+The easier way to do this is to a graphical utility included with the Ubuntu Live disk. It's called "Disks". To find it, just press the Super key (the Win key on your keyboard) and type Disks in the search box.
+
+##### Boot partition
+
+Click the "Free space" and the + button to add a partition. Set the partition size to 1 GB (that should be more than enough).
+
+Click Next and make sure the Type is Ext4.
+
+Click Create.
+
