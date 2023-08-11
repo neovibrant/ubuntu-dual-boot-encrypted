@@ -170,4 +170,6 @@ Apply changes with:
 update-initramfs -k all -c
 ```
 
+> On RedHat-based systems (Fedora, openSUSE etc), you can run `dracut --regenerate-all --force` instead of the previous command.
+
 Done. You can now restart your computer.
